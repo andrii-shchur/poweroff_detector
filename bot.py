@@ -17,6 +17,7 @@ if not os.environ.get('PRODUCTION'):
     from dotenv import load_dotenv
 
     load_dotenv()
+
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)

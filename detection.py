@@ -1,3 +1,4 @@
+import io
 from collections import defaultdict
 from datetime import date, datetime
 
@@ -32,8 +33,8 @@ def get_coordinates_map() -> list[tuple[int, int]]:
     return result
 
 
-def detect_on_off(filename: str) -> dict[str, list[bool]]:
-    image = Image.open(filename)
+def detect_on_off(image: bytes) -> dict[str, list[bool]]:
+    image = Image.open(io.BytesIO(image))
     pixels = image.load()
     status = defaultdict(list)
     coordinates_map = get_coordinates_map()
@@ -43,15 +44,17 @@ def detect_on_off(filename: str) -> dict[str, list[bool]]:
     return status
 
 
-def detect_date(filename: str) -> date:
+def detect_date(filename: str) -> date | None:
     image = Image.open(filename)
     date_str = pytesseract.image_to_string(image.crop(DATE_BOX)).strip()
-    return datetime.strptime(date_str, '%d.%m.%Y').date()
+    try:
+        return datetime.strptime(date_str, '%d.%m.%Y').date()
+    except ValueError:
+        return None  # date not detected -> skip image as it's not a schedule
 
 
-# FOR DEBUG PURPOSES
-if __name__ == '__main__':
-    image = Image.open('img.png')
+def test_coordinates_map(image: bytes | None = None) -> None:
+    image = Image.open(io.BytesIO(image)) if image else Image.open('img.png')
     coordinates_map = get_coordinates_map()
     pixels = image.load()
     # for x, y in coordinates_map:
@@ -64,4 +67,8 @@ if __name__ == '__main__':
             print('🟩' if pixels[*coordinates_map[i + GROUP_COUNT * j]][0] < 200 else '🟥', end='')
         print()
 
+
+# FOR DEBUG PURPOSES
+if __name__ == '__main__':
+    test_coordinates_map()
     print(detect_date('img.png'))
