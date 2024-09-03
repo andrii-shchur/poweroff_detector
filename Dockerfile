@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 WORKDIR /app
 
-COPY requirements.txt detection.py img.png ./
+COPY requirements.txt detection.py const.py img.png ./
 RUN pip install -r requirements.txt
 
 RUN apt update && apt install -y tesseract-ocr libtesseract-dev
