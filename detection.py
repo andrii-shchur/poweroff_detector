@@ -4,7 +4,17 @@ from datetime import date, datetime
 import pytesseract
 from PIL import Image
 
-from const import HOUR_COUNT, GROUP_COUNT, TABLES_DIFF, X_OFFSET, COLUMN_WIDTH, Y_OFFSET, ROW_HEIGHT, GROUPS, DATE_BOX
+from const import (
+    COLUMN_WIDTH,
+    DATE_BOX,
+    GROUP_COUNT,
+    GROUPS,
+    HOUR_COUNT,
+    ROW_HEIGHT,
+    TABLES_DIFF,
+    X_OFFSET,
+    Y_OFFSET,
+)
 
 
 def get_coordinates_map() -> list[tuple[int, int]]:
@@ -12,7 +22,7 @@ def get_coordinates_map() -> list[tuple[int, int]]:
     tables_split_at = 12
     for hour in range(HOUR_COUNT):
         for group in range(GROUP_COUNT):
-            additional_offset = TABLES_DIFF if hour > tables_split_at else 0
+            additional_offset = TABLES_DIFF if hour >= tables_split_at else 0
             result.append(
                 (
                     X_OFFSET + COLUMN_WIDTH * (hour % tables_split_at),
@@ -29,9 +39,7 @@ def detect_on_off(filename: str) -> dict[str, list[bool]]:
     coordinates_map = get_coordinates_map()
     for i in range(GROUP_COUNT):
         for j in range(HOUR_COUNT):
-            status[GROUPS[i]].append(
-                pixels[*coordinates_map[i + GROUP_COUNT * j]][0] < 200
-            )
+            status[GROUPS[i]].append(pixels[*coordinates_map[i + GROUP_COUNT * j]][0] < 200)
     return status
 
 
@@ -52,7 +60,7 @@ if __name__ == '__main__':
 
     for i in range(GROUP_COUNT):
         for j in range(HOUR_COUNT):
-            # print(coordinates_map[i + image_params.group_count * j], end=' ')
+            # print(coordinates_map[i + GROUP_COUNT * j], end=' ')
             print('🟩' if pixels[*coordinates_map[i + GROUP_COUNT * j]][0] < 200 else '🟥', end='')
         print()
 
