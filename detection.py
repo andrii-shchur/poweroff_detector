@@ -53,6 +53,7 @@ def detect_date(filename: str) -> date | None:
         return None  # date not detected -> skip image as it's not a schedule
 
 
+# FOR DEBUG PURPOSES
 def test_coordinates_map(image: bytes | None = None) -> None:
     image = Image.open(io.BytesIO(image)) if image else Image.open('img.png')
     coordinates_map = get_coordinates_map()
@@ -68,7 +69,6 @@ def test_coordinates_map(image: bytes | None = None) -> None:
         print()
 
 
-# FOR DEBUG PURPOSES
 if __name__ == '__main__':
     test_coordinates_map()
     print(detect_date('img.png'))
