@@ -15,7 +15,8 @@ DATE_BOX: tuple[int, int, int, int] = 282, 42, 439, 79  # x_top, y_top, x_bottom
 TABLES_DIFF: int = 335
 
 # Telegram chat id of LvivOblEnergo channel
-LOE_CHAT_ID = -1001370047993
+# LOE_CHAT_ID = -1001370047993
+LOE_CHAT_ID = -1001722998737
 
 # Stuff from env variables
 if not os.environ.get('PRODUCTION'):
@@ -31,3 +32,4 @@ POSTGRES_PORT = int(os.environ.get('POSTGRES_PORT'))
 POSTGRES_DB_NAME = os.environ.get('POSTGRES_DB_NAME')
 POSTGRES_USER = os.environ.get('POSTGRES_USER')
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
+POSTGRES_RETRY_COUNT = int(os.environ.get('POSTGRES_RETRY_COUNT'))

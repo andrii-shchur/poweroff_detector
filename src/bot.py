@@ -122,14 +122,16 @@ async def send_updates(schedule: dict[str, list[OnOffInterval]], schedule_date: 
     group_to_chat_id = get_chat_ids_for_group()
     for group_name, chat_ids in group_to_chat_id.items():
         filtered_schedule = filter(
-            lambda x: x.state == 'off'
-            and ((x.start_hour > datetime.datetime.now().hour) if day_name == 'сьогодні' else True),
-            schedule[group_name],
+            lambda x: (x.start_hour > datetime.datetime.now().hour) if day_name == 'сьогодні' else True,
+            filter(
+                lambda x: x.state == 'off',
+                schedule[group_name],
+            ),
         )
         next_outages = list(map(str, filtered_schedule))
         message_text = f'❗️В групі {group_name} змінився графік відключень на {day_name}.\n'
         if next_outages:
-            message_text += f'🔴Наступні відключення {" ".join(next_outages)}\n'
+            message_text += f'🔴Наступні відключення: {", ".join(next_outages)}\n'
         else:
             message_text += '🟢Відключень немає'
         for chat_id in chat_ids:

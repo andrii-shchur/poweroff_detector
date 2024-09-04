@@ -1,3 +1,5 @@
+import time
+
 import psycopg2
 
 from const import (
@@ -5,12 +7,24 @@ from const import (
     POSTGRES_HOST,
     POSTGRES_PASSWORD,
     POSTGRES_PORT,
+    POSTGRES_RETRY_COUNT,
     POSTGRES_USER,
 )
 
-conn = psycopg2.connect(
-    host=POSTGRES_HOST, user=POSTGRES_USER, password=POSTGRES_PASSWORD, dbname=POSTGRES_DB_NAME, port=POSTGRES_PORT
-)
+for _ in range(POSTGRES_RETRY_COUNT):
+    try:
+        conn = psycopg2.connect(
+            host=POSTGRES_HOST,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+            dbname=POSTGRES_DB_NAME,
+            port=POSTGRES_PORT,
+        )
+    except psycopg2.OperationalError:
+        time.sleep(2)
+        continue
+    else:
+        break
 
 
 def create_subscriptions_table_if_not_exists():
