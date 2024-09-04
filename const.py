@@ -6,7 +6,7 @@ Y_OFFSET: int = 244
 
 COLUMN_WIDTH: int = 58
 ROW_HEIGHT: int = 43
-GROUPS: set[str] = {'1.1', '1.2', '2.1', '2.2', '3.1', '3.2'}
+GROUPS: tuple[str, ...] = ('1.1', '1.2', '2.1', '2.2', '3.1', '3.2')
 GROUP_COUNT: int = len(GROUPS)
 HOUR_COUNT: int = 24
 DATE_BOX: tuple[int, int, int, int] = 282, 42, 439, 79  # x_top, y_top, x_bottom, y_bottom

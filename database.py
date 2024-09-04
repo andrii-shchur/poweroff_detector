@@ -16,7 +16,8 @@ conn = psycopg2.connect(
 def create_subscriptions_table_if_not_exists():
     with conn.cursor() as cursor:
         cursor.execute(
-            "CREATE TABLE IF NOT EXISTS public.subscriptions ( id SERIAL PRIMARY KEY, group_name VARCHAR(3) NOT NULL, chat_id BIGINT NOT NULL);"
+            "CREATE TABLE IF NOT EXISTS public.subscriptions "
+            "( id SERIAL PRIMARY KEY, group_name VARCHAR(3) NOT NULL, chat_id BIGINT NOT NULL);"
         )
         conn.commit()
 
