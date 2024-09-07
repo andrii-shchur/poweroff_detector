@@ -22,7 +22,10 @@ from database import (
 from detection import OnOffInterval
 
 logging.basicConfig(
-    filename='app.log', filemode='a+', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    filename='log/app.log',
+    filemode='a+',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
@@ -44,7 +47,7 @@ def get_subscribed_groups_for_user(chat_id: int) -> tuple[str, ...]:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     chat_id = update.message.chat_id
     reply_keyboard = [get_available_groups_for_user(chat_id)]
-    reply_markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, resize_keyboard=True)
 
     await update.message.reply_text('Вітаю, виберіть свою групу:', reply_markup=reply_markup)
     log.info(f'User {chat_id=} started a bot')
@@ -56,7 +59,7 @@ async def subscribe_group(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not reply_keyboard[0]:
         await update.message.reply_text('Ви підписались на всі доступні групи.')
         return ConversationHandler.END
-    reply_markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, resize_keyboard=True)
 
     await update.message.reply_text('Виберіть групу, на яку хочете підписатись:', reply_markup=reply_markup)
     return CHOOSING
@@ -67,7 +70,7 @@ async def unsubscribe_group(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if not reply_keyboard[0]:
         await update.message.reply_text('Ви не підписані на жодну групу.')
         return ConversationHandler.END
-    reply_markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True, resize_keyboard=True)
 
     await update.message.reply_text('Виберіть групу, від якої хочете відписатись:', reply_markup=reply_markup)
     return UNSUBSCRIBING
@@ -153,8 +156,8 @@ def main():
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
     conv_handler_states = {
-        CHOOSING: [MessageHandler(filters.TEXT & ~filters.COMMAND, callback=handle_group_choosing)],
-        UNSUBSCRIBING: [MessageHandler(filters.TEXT & ~filters.COMMAND, callback=handle_group_unsubscribe)],
+        CHOOSING: [MessageHandler(filters.TEXT, callback=handle_group_choosing)],
+        UNSUBSCRIBING: [MessageHandler(filters.TEXT, callback=handle_group_unsubscribe)],
     }
     conv_handler_fallbacks = [CommandHandler("cancel", cancel)]
     groups_handler_initial = ConversationHandler(
