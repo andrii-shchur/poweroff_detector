@@ -34,6 +34,8 @@ POSTGRES_USER = os.environ.get('POSTGRES_USER')
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
 POSTGRES_RETRY_COUNT = int(os.environ.get('POSTGRES_RETRY_COUNT'))
 
+STDOUT_LOGS = os.environ.get('STDOUT_LOGS')
+
 
 class DayName(Enum):
     TODAY = 'сьогодні'
