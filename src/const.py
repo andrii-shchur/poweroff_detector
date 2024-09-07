@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 
 # Basically a reference point from which all the other coordinates are calculated
 X_OFFSET: int = 146
@@ -32,3 +33,8 @@ POSTGRES_DB_NAME = os.environ.get('POSTGRES_DB_NAME')
 POSTGRES_USER = os.environ.get('POSTGRES_USER')
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
 POSTGRES_RETRY_COUNT = int(os.environ.get('POSTGRES_RETRY_COUNT'))
+
+
+class DayName(Enum):
+    TODAY = 'сьогодні'
+    TOMORROW = 'завтра'

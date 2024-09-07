@@ -11,7 +11,7 @@ from telegram.ext import (
     filters,
 )
 
-from const import GROUPS, TELEGRAM_BOT_TOKEN
+from const import GROUPS, TELEGRAM_BOT_TOKEN, DayName
 from database import (
     create_subscriptions_table_if_not_exists,
     delete_group_subscription,
@@ -113,16 +113,21 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def send_updates(schedule: dict[str, list[OnOffInterval]], schedule_date: datetime.date) -> None:
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
     if schedule_date == datetime.date.today():
-        day_name = 'сьогодні'
+        day_name = DayName.TODAY
     elif schedule_date == datetime.date.today() + datetime.timedelta(days=1):
-        day_name = 'завтра'
+        day_name = DayName.TOMORROW
     else:
         day_name = schedule_date.strftime('%d.%m.%Y')
 
     group_to_chat_id = get_chat_ids_for_group()
+    now_hour = datetime.datetime.now().hour
     for group_name, chat_ids in group_to_chat_id.items():
         filtered_schedule = filter(
-            lambda x: (x.start_hour > datetime.datetime.now().hour) if day_name == 'сьогодні' else True,
+            lambda x: (
+                (x.start_hour >= now_hour or x.end_hour > now_hour >= x.start_hour)
+                if day_name == DayName.TODAY
+                else True
+            ),
             filter(
                 lambda x: x.state == 'off',
                 schedule[group_name],
