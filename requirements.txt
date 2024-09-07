@@ -1,2 +1,7 @@
-pytesseract~=0.3.13
-pillow~=10.4.0
+pillow==10.4.0
+psycopg2-binary==2.9.9
+pydantic==2.8.2
+pytesseract==0.3.13
+python-dotenv==1.0.1
+python-telegram-bot==21.4
+Telethon==1.36.0
