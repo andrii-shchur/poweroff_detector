@@ -21,7 +21,9 @@ from database import (
 )
 from detection import OnOffInterval
 
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(
+    filename='app.log', filemode='a+', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 log = logging.getLogger(__name__)

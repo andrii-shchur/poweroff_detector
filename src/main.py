@@ -7,7 +7,6 @@ from bot import send_updates
 from const import LOE_CHAT_ID, TELEGRAM_API_HASH, TELEGRAM_API_ID
 from detection import detect_date, detect_on_off, prettify_detection
 
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
