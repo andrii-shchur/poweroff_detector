@@ -15,8 +15,7 @@ DATE_BOX: tuple[int, int, int, int] = 282, 42, 439, 79  # x_top, y_top, x_bottom
 TABLES_DIFF: int = 335
 
 # Telegram chat id of LvivOblEnergo channel
-# LOE_CHAT_ID = -1001370047993
-LOE_CHAT_ID = -1001722998737
+LOE_CHAT_ID = -1001370047993
 
 # Stuff from env variables
 if not os.environ.get('PRODUCTION'):
