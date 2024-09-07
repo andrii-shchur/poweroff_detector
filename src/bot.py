@@ -1,5 +1,6 @@
 import datetime
 import logging
+import sys
 
 from telegram import Bot, ReplyKeyboardMarkup, Update
 from telegram.ext import (
@@ -11,7 +12,7 @@ from telegram.ext import (
     filters,
 )
 
-from const import GROUPS, TELEGRAM_BOT_TOKEN, DayName
+from const import GROUPS, STDOUT_LOGS, TELEGRAM_BOT_TOKEN, DayName
 from database import (
     create_subscriptions_table_if_not_exists,
     delete_group_subscription,
@@ -21,14 +22,15 @@ from database import (
 )
 from detection import OnOffInterval
 
+log_handlers = [logging.FileHandler(filename='log/app.log', mode='a+')]
+if STDOUT_LOGS:
+    log_handlers.append(logging.StreamHandler(stream=sys.stdout))
 logging.basicConfig(
-    filename='log/app.log',
-    filemode='a+',
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
+    handlers=log_handlers,
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
-
 log = logging.getLogger(__name__)
 
 CHOOSING = 0

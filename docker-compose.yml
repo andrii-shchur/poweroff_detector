@@ -15,7 +15,7 @@ services:
       POSTGRES_RETRY_COUNT: ${POSTGRES_RETRY_COUNT}
       TZ: Europe/Kyiv
     volumes:
-      - ~/log:/app/log
+      - /app_logs:/app/log
 
     depends_on:
       - postgres
