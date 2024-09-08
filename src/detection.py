@@ -21,7 +21,7 @@ from const import (
 
 class OnOffInterval(BaseModel):
     state: str = Field(pattern=r'^(on|off)$')
-    start_hour: int = Field(ge=0, le=24)
+    start_hour: int = Field(ge=0, le=23)
     end_hour: int = Field(ge=0, le=24)
 
     @model_validator(mode='after')
