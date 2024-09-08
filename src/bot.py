@@ -119,13 +119,13 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
-async def send_updates(schedule: dict[str, list[bool]], schedule_date: datetime.date) -> None:
+async def send_updates(schedule_date: datetime.date, schedule: dict[str, list[bool]]) -> None:
     schedule_formatted = prettify_detection(schedule)
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
     if schedule_date == datetime.date.today():
-        day_name = DayName.TODAY
+        day_name = DayName.TODAY.value
     elif schedule_date == datetime.date.today() + datetime.timedelta(days=1):
-        day_name = DayName.TOMORROW
+        day_name = DayName.TOMORROW.value
     else:
         day_name = schedule_date.strftime('%d.%m.%Y')
 
@@ -141,7 +141,7 @@ async def send_updates(schedule: dict[str, list[bool]], schedule_date: datetime.
         filtered_schedule = filter(
             lambda x: (
                 (x.start_hour >= now_hour or x.end_hour > now_hour >= x.start_hour)
-                if day_name == DayName.TODAY
+                if day_name == DayName.TODAY.value
                 else True
             ),
             filter(
