@@ -5,7 +5,7 @@ from telethon.sync import TelegramClient, events
 
 from bot import send_updates
 from const import LOE_CHAT_ID, TELEGRAM_API_HASH, TELEGRAM_API_ID
-from detection import detect_date, detect_on_off, prettify_detection
+from detection import get_date_and_schedule
 
 log = logging.getLogger(__name__)
 
@@ -14,13 +14,9 @@ def process_schedule_update(image_blob: bytes | None) -> None:
     if image_blob is None:
         log.info('Skipping messsage, no image')
         return
-    if (schedule_date := detect_date(image_blob)) is None:
-        log.info('Skipping image, no schedule')
-        return
-    log.info(f'Detected date: {schedule_date}')
-    schedule = detect_on_off(image_blob)
-    schedule = prettify_detection(schedule)
-    asyncio.ensure_future(send_updates(schedule, schedule_date))
+    schedule_date, schedule = get_date_and_schedule(image_blob)
+    log.info(f'Detected date: {schedule_date}. Detected schedule: {schedule}')
+    asyncio.ensure_future(send_updates(schedule_date, schedule))
 
 
 if __name__ == '__main__':

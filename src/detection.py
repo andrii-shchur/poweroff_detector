@@ -1,22 +1,27 @@
 import io
+import logging
 from collections import defaultdict
 from datetime import date, datetime
 
+import dateparser
 import pytesseract
 from PIL import Image
 from pydantic import BaseModel, Field, model_validator
 
 from const import (
     COLUMN_WIDTH,
-    DATE_BOX,
     GROUP_COUNT,
     GROUPS,
     HOUR_COUNT,
+    NO_OUTAGES_DATE_BOX,
     ROW_HEIGHT,
+    SCHEDULE_DATE_BOX,
     TABLES_DIFF,
     X_OFFSET,
     Y_OFFSET,
 )
+
+log = logging.getLogger(__name__)
 
 
 class OnOffInterval(BaseModel):
@@ -82,10 +87,34 @@ def prettify_detection(detection: dict[str, list[bool]]) -> dict[str, list[OnOff
     return pretty_schedule
 
 
-def detect_date(image_blob: bytes) -> date | None:
+def detect_date_on_schedule(image_blob: bytes) -> date | None:
     image = Image.open(io.BytesIO(image_blob))
-    date_str = pytesseract.image_to_string(image.crop(DATE_BOX)).strip()
+    date_str = pytesseract.image_to_string(image.crop(SCHEDULE_DATE_BOX)).strip()
     try:
         return datetime.strptime(date_str, '%d.%m.%Y').date()
     except ValueError:
         return None  # date not detected -> skip image as it's not a schedule
+
+
+def detect_no_outages_date(image_blob: bytes) -> date | None:
+    image = Image.open(io.BytesIO(image_blob))
+    image_text = pytesseract.image_to_string(image, lang='ukr').replace('\n', ' ')
+    if 'графіки погодинних відключень не застосовуватимуть' in image_text:
+        date_str = pytesseract.image_to_string(image.crop(NO_OUTAGES_DATE_BOX), lang='ukr').strip()
+        parsed_date = dateparser.parse(date_str, languages=('uk',))
+        return parsed_date.date() if parsed_date else None
+
+
+def get_date_and_schedule(image_blob: bytes) -> tuple[date, dict[str, list[bool]]] | None:
+    if (schedule_date := detect_date_on_schedule(image_blob)) is not None:
+        schedule = detect_on_off(image_blob)
+        return schedule_date, schedule
+    else:
+        log.info('No schedule found')
+        if (no_outages_date := detect_no_outages_date(image_blob)) is not None:
+            log.info('Found "no outages" image')
+            no_outages_schedule = dict((group, [True for _ in range(HOUR_COUNT)]) for group in GROUPS)
+            return no_outages_date, no_outages_schedule
+        else:
+            log.info('Skipping image, neither any schedule nor "no outages" found')
+            return
