@@ -14,13 +14,15 @@ from telegram.ext import (
 
 from const import GROUPS, STDOUT_LOGS, TELEGRAM_BOT_TOKEN, DayName
 from database import (
-    create_subscriptions_table_if_not_exists,
+    create_tables_if_not_exists,
     delete_group_subscription,
-    get_chat_ids_for_group,
+    get_chat_ids_for_groups,
     get_groups_by_chat_id,
+    get_recent_schedules_for_groups,
     set_group_subscription,
+    upsert_recent_schedule,
 )
-from detection import OnOffInterval
+from detection import prettify_detection
 
 log_handlers = [logging.FileHandler(filename='log/app.log', mode='a+')]
 if STDOUT_LOGS:
@@ -117,7 +119,8 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
-async def send_updates(schedule: dict[str, list[OnOffInterval]], schedule_date: datetime.date) -> None:
+async def send_updates(schedule: dict[str, list[bool]], schedule_date: datetime.date) -> None:
+    schedule_formatted = prettify_detection(schedule)
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
     if schedule_date == datetime.date.today():
         day_name = DayName.TODAY
@@ -126,9 +129,15 @@ async def send_updates(schedule: dict[str, list[OnOffInterval]], schedule_date: 
     else:
         day_name = schedule_date.strftime('%d.%m.%Y')
 
-    group_to_chat_id = get_chat_ids_for_group()
+    group_to_chat_id = get_chat_ids_for_groups()
+    group_to_recent_schedule = get_recent_schedules_for_groups(schedule_date)
     now_hour = datetime.datetime.now().hour
     for group_name, chat_ids in group_to_chat_id.items():
+        if schedule[group_name] == group_to_recent_schedule.get(group_name):
+            log.info(f"Skipping send_updates for group {group_name}, as schedule hasn't changed")
+            continue
+        upsert_recent_schedule(date=schedule_date, group_name=group_name, schedule=schedule[group_name])
+
         filtered_schedule = filter(
             lambda x: (
                 (x.start_hour >= now_hour or x.end_hour > now_hour >= x.start_hour)
@@ -137,7 +146,7 @@ async def send_updates(schedule: dict[str, list[OnOffInterval]], schedule_date: 
             ),
             filter(
                 lambda x: x.state == 'off',
-                schedule[group_name],
+                schedule_formatted[group_name],
             ),
         )
         next_outages = list(map(str, filtered_schedule))
@@ -154,7 +163,7 @@ async def send_updates(schedule: dict[str, list[OnOffInterval]], schedule_date: 
 
 
 def main():
-    create_subscriptions_table_if_not_exists()
+    create_tables_if_not_exists()
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
     conv_handler_states = {
