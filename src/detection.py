@@ -100,7 +100,7 @@ def detect_no_outages_date(image_blob: bytes) -> date | None:
     image = Image.open(io.BytesIO(image_blob))
     image_text = pytesseract.image_to_string(image, lang='ukr').replace('\n', ' ')
     if 'графіки погодинних відключень не застосовуватимуть' in image_text:
-        date_str = pytesseract.image_to_string(image.crop(NO_OUTAGES_DATE_BOX), lang='ukr').strip()
+        date_str = pytesseract.image_to_string(image.crop(NO_OUTAGES_DATE_BOX).convert('L'), lang='ukr').strip()
         parsed_date = dateparser.parse(date_str, languages=('uk',))
         return parsed_date.date() if parsed_date else None
 

@@ -14,9 +14,10 @@ def process_schedule_update(image_blob: bytes | None) -> None:
     if image_blob is None:
         log.info('Skipping messsage, no image')
         return
-    schedule_date, schedule = get_date_and_schedule(image_blob)
-    log.info(f'Detected date: {schedule_date}. Detected schedule: {schedule}')
-    asyncio.ensure_future(send_updates(schedule_date, schedule))
+    if date_schedule := get_date_and_schedule(image_blob):
+        schedule_date, schedule = date_schedule
+        log.info(f'Detected date: {schedule_date}. Detected schedule: {schedule}')
+        asyncio.ensure_future(send_updates(schedule_date, schedule))
 
 
 if __name__ == '__main__':
