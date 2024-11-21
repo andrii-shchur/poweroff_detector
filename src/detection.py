@@ -15,10 +15,8 @@ from const import (
     HOUR_COUNT,
     NO_OUTAGES_DATE_BOX,
     ROW_HEIGHT,
-    SCHEDULE_DATE_BOX,
+    SCHEDULE_DATE_BOXES_TO_OFFSET,
     TABLES_DIFF,
-    X_OFFSET,
-    Y_OFFSET,
 )
 
 log = logging.getLogger(__name__)
@@ -38,7 +36,7 @@ class OnOffInterval(BaseModel):
         return f'{self.start_hour}:00 - {self.end_hour}:00'
 
 
-def get_coordinates_map() -> list[tuple[int, int]]:
+def get_coordinates_map(x_offset: int, y_offset: int) -> list[tuple[int, int]]:
     result = []
     tables_split_at = 12
     for hour in range(HOUR_COUNT):
@@ -46,18 +44,18 @@ def get_coordinates_map() -> list[tuple[int, int]]:
             additional_offset = TABLES_DIFF if hour >= tables_split_at else 0
             result.append(
                 (
-                    X_OFFSET + COLUMN_WIDTH * (hour % tables_split_at),
-                    Y_OFFSET + ROW_HEIGHT * group + additional_offset,
+                    x_offset + COLUMN_WIDTH * (hour % tables_split_at),
+                    y_offset + ROW_HEIGHT * group + additional_offset,
                 )
             )
     return result
 
 
-def detect_on_off(image_blob: bytes) -> dict[str, list[bool]]:
+def detect_on_off(image_blob: bytes, x_offset: int, y_offset: int) -> dict[str, list[bool]]:
     image = Image.open(io.BytesIO(image_blob))
     pixels = image.load()
     status = defaultdict(list)
-    coordinates_map = get_coordinates_map()
+    coordinates_map = get_coordinates_map(x_offset, y_offset)
     for i in range(GROUP_COUNT):
         for j in range(HOUR_COUNT):
             status[GROUPS[i]].append(pixels[*coordinates_map[i + GROUP_COUNT * j]][0] < 200)
@@ -87,13 +85,15 @@ def prettify_detection(detection: dict[str, list[bool]]) -> dict[str, list[OnOff
     return pretty_schedule
 
 
-def detect_date_on_schedule(image_blob: bytes) -> date | None:
+def detect_date_on_schedule(image_blob: bytes) -> tuple[date, int, int] | None:
     image = Image.open(io.BytesIO(image_blob))
-    date_str = pytesseract.image_to_string(image.crop(SCHEDULE_DATE_BOX)).strip()
-    try:
-        return datetime.strptime(date_str, '%d.%m.%Y').date()
-    except ValueError:
-        return None  # date not detected -> skip image as it's not a schedule
+    for box, x_y_offset in SCHEDULE_DATE_BOXES_TO_OFFSET.items():
+        date_str = pytesseract.image_to_string(image.crop(box)).strip()
+        try:
+            return datetime.strptime(date_str, '%d.%m.%Y').date(), *x_y_offset
+        except ValueError:
+            pass
+    return None  # date not detected -> skip image as it's not a schedule
 
 
 def detect_no_outages_date(image_blob: bytes) -> date | None:
@@ -106,8 +106,9 @@ def detect_no_outages_date(image_blob: bytes) -> date | None:
 
 
 def get_date_and_schedule(image_blob: bytes) -> tuple[date, dict[str, list[bool]]] | None:
-    if (schedule_date := detect_date_on_schedule(image_blob)) is not None:
-        schedule = detect_on_off(image_blob)
+    if (result := detect_date_on_schedule(image_blob)) is not None:
+        schedule_date, x_offset, y_offset = result
+        schedule = detect_on_off(image_blob, x_offset, y_offset)
         return schedule_date, schedule
     else:
         log.info('No schedule found')
