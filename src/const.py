@@ -10,6 +10,7 @@ HOUR_COUNT: int = 24
 SCHEDULE_DATE_BOXES_TO_OFFSET: dict[tuple[int, int, int, int], tuple[int, int]] = {
     (35, 96, 184, 130): (146, 257),  # (x_top, y_top, x_bottom, y_bottom): (x_offset, y_offset)
     (297, 48, 435, 75): (146, 235),
+    (39, 45, 184, 75): (147, 233),
 }
 NO_OUTAGES_DATE_BOX: tuple[int, int, int, int] = 688, 206, 1079, 311
 
